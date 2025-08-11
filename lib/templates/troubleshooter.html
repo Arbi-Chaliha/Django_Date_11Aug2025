@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7 text-center">
+        <h1 class="my-3 animated-title">FNFM Troubleshooting Interface</h1>
+        <img src="{% static 'FNFM_UH_view_Tool_string.JPEG' %}" alt="FNFM View Tool" class="img-fluid animated-image" style="max-width: 800px; max-height: 800px;">
+    </div>
+</div>
+<hr>
+
+<div class="row">
+    <div class="col-md-4">
+        <form method="post" id="troubleshooter-form">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="failure_selectbox" class="form-label enlarged-text">On which failure do you want to start?</label>
+                <!-- This selectbox is now populated by the view on initial load -->
+                <select name="failure_selectbox" id="failure_selectbox" class="form-select">
+                    {% for failure in failure_list %}
+                        <option value="{{ failure }}" {% if failure == request.POST.failure_selectbox %}selected{% endif %}>{{ failure }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.serial_number.id_for_label }}" class="form-label enlarged-text">{{ form.serial_number.label }}</label>
+                <!-- These dropdowns are now populated via JavaScript and the new API -->
+                {{ form.serial_number }}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.job_number.id_for_label }}" class="form-label enlarged-text">{{ form.job_number.label }}</label>
+                {{ form.job_number }}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.job_start.id_for_label }}" class="form-label enlarged-text">{{ form.job_start.label }}</label>
+                {{ form.job_start }}
+            </div>
+
+            <button type="submit" class="btn btn-primary enlarged-text">Analyze</button>
+        </form>
+    </div>
+
+    <div class="col-md-8">
+        {% for message in messages %}
+            <div class="alert alert-info enlarged-text bold-blue" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        {% if partition_id %}
+            <h3 class="mt-4 enlarged-text bold-blue">The partition_id associated with your chosen serial number, job number and start job is {{ partition_id }}</h3>
+            <hr>
+        {% endif %}
+
+        {% if root_cause_table_html %}
+            <h3 class="mt-4 enlarged-text">Root Cause Analysis (<span class="red-dot">🔴</span> Only)</h3>
+            <div class="table-responsive">
+                {{ root_cause_table_html|safe }}
+            </div>
+        {% else %}
+            <p class="mt-4 enlarged-text">No alerts detected for this failure or no data available for the selected criteria.</p>
+        {% endif %}
+
+        {% if graph_html_path %}
+            <h3 class="mt-4 enlarged-text">Knowledge Graph Visualization</h3>
+            <iframe src="{{ graph_html_path }}" width="100%" height="1150px" frameborder="0"></iframe>
+        {% endif %}
+
+        {% if df_clean_html %}
+            <h3 class="mt-4 enlarged-text">All Processed Triples</h3>
+            <div class="table-responsive">
+                {{ df_clean_html|safe }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const serialNumberSelect = document.getElementById('id_serial_number');
+        const jobNumberSelect = document.getElementById('id_job_number');
+        const jobStartSelect = document.getElementById('id_job_start');
+
+        // Function to fetch choices from the new API endpoint
+        function fetchChoices(parentField, parentValue, targetSelect) {
+            const url = `{% url 'troubleshooter_app:get_form_choices' %}?parent_field=${parentField}&parent_value=${parentValue}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    targetSelect.innerHTML = '';
+                    let defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    if (parentField === 'serial_number') defaultOption.text = 'Select serial number...';
+                    if (parentField === 'job_number') defaultOption.text = 'Select job number...';
+                    if (parentField === 'job_start') defaultOption.text = 'Select start job...';
+                    targetSelect.add(defaultOption);
+                    
+                    data.choices.forEach(choice => {
+                        let option = document.createElement('option');
+                        option.value = choice[0];
+                        option.text = choice[1];
+                        targetSelect.add(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching choices:', error));
+        }
+
+        // Initial fetch for serial numbers when the page loads
+        fetchChoices('serial_number', '', serialNumberSelect);
+
+        // Event listeners to trigger API calls on change
+        serialNumberSelect.addEventListener('change', function() {
+            fetchChoices('job_number', this.value, jobNumberSelect);
+            // Clear subsequent dropdowns
+            jobStartSelect.innerHTML = '<option value="">Select start job...</option>';
+        });
+
+        jobNumberSelect.addEventListener('change', function() {
+            fetchChoices('job_start', this.value, jobStartSelect);
+        });
+    });
+</script>
+{% endblock %}
