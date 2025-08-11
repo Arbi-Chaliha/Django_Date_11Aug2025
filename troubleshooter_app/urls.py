@@ -5,8 +5,11 @@ from . import views
 app_name = 'troubleshooter_app'
 
 urlpatterns = [
-    # The main troubleshooter page.
+    # The main troubleshooter page with the form.
     path('', views.troubleshooter_view, name='troubleshooter'),
+    
+    # The new page to display the results after the form is submitted.
+    path('results/', views.troubleshooter_results_view, name='troubleshooter_results'),
     
     # New API endpoint to get choices for the dynamic dropdowns.
     path('api/get_choices/', views.get_form_choices, name='get_form_choices'),
