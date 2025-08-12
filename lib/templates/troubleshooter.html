@@ -2,11 +2,31 @@
 {% load static %}
 
 {% block content %}
-<div class="row justify-content-center">
+<!--<div class="row justify-content-center">
     <div class="col-md-7 text-center">
-        <h1 class="my-3 animated-title">FNFM Troubleshooting Interface</h1>
+        <h1 class="my-3">FNFM Troubleshooting Interface</h1>
         <img src="{% static 'FNFM_UH_view_Tool_string.JPEG' %}" alt="FNFM View Tool" class="img-fluid animated-image" style="max-width: 800px; max-height: 800px;">
     </div>
+</div>-->
+<!--<nav class="navbar" style="background-color: #0014db;">
+    <div class="container justify-content-center">
+        <h1 class="navbar-brand mb-0 text-white">FNFM Troubleshooting Interface</h1>
+    </div>
+</nav>
+ <img src="{% static 'FNFM_UH_view_Tool_string.JPEG' %}" alt="FNFM View Tool" class="img-fluid animated-image" style="max-width: 800px; max-height: 800px;">-->
+ <nav class="navbar" style="background-color: #0014db;">
+    <div class="container justify-content-center">
+        <h1 class="navbar-brand mb-0 text-white" style="font-weight: bold;">
+            FNFM Troubleshooting Interface
+        </h1>
+    </div>
+</nav>
+
+<div class="mt-4">
+    <img src="{% static 'FNFM_UH_view_Tool_string.JPEG' %}" 
+         alt="FNFM View Tool" 
+         class="w-100"
+         style="height: 300px; object-fit:contain;">
 </div>
 <hr>
 
@@ -40,7 +60,7 @@
                 {{ form.job_start }}
             </div>
 
-            <button type="submit" class="btn btn-primary enlarged-text">Analyze</button>
+            <button type="submit" class="btn enlarged-text" style="background-color: #0014db; border-color: #0014db; color: white;">Analyze</button>
         </form>
     </div>
 
@@ -51,17 +71,16 @@
             </div>
         {% endfor %}
 
-        {% if partition_id %}
-            <h3 class="mt-4 enlarged-text bold-blue">The partition_id associated with your chosen serial number, job number and start job is {{ partition_id }}</h3>
-            <hr>
-        {% endif %}
+     
+            
+     
 
         {% if root_cause_table_html %}
             <h3 class="mt-4 enlarged-text">Root Cause Analysis (<span class="red-dot">🔴</span> Only)</h3>
             <div class="table-responsive">
                 {{ root_cause_table_html|safe }}
             </div>
-        {% else %}
+       {% else %}
             <p class="mt-4 enlarged-text">No alerts detected for this failure or no data available for the selected criteria.</p>
         {% endif %}
 
@@ -70,12 +89,12 @@
             <iframe src="{{ graph_html_path }}" width="100%" height="1150px" frameborder="0"></iframe>
         {% endif %}
 
-        {% if df_clean_html %}
+       <!-- {% if df_clean_html %}
             <h3 class="mt-4 enlarged-text">All Processed Triples</h3>
             <div class="table-responsive">
                 {{ df_clean_html|safe }}
             </div>
-        {% endif %}
+        {% endif %}-->
     </div>
 </div>
 {% endblock %}
